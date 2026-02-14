@@ -180,6 +180,18 @@ button:hover {
   white-space: nowrap;
 }
 
+
+.player-row {
+  margin-top: 10px;
+}
+
+.player-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: 10px;
+}
+
 .upload-form {
   display: flex;
   flex-direction: column;

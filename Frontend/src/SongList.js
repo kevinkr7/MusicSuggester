@@ -1,11 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
+
+const resolveAudioUrl = (audioUrl) => {
+  if (!audioUrl) return "";
+  if (audioUrl.startsWith("http://") || audioUrl.startsWith("https://")) return audioUrl;
+  return `${API_BASE}/uploads/${audioUrl}`;
+};
 
 export default function SongList({ mood }) {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+  const audioRefs = useRef({});
   const [favorites, setFavorites] = useState(() => {
     try {
       const cached = localStorage.getItem("music-favorites");
@@ -36,6 +44,15 @@ export default function SongList({ mood }) {
     localStorage.setItem("music-favorites", JSON.stringify(favorites));
   }, [favorites]);
 
+  useEffect(() => {
+    setCurrentlyPlaying(null);
+    Object.values(audioRefs.current).forEach((audio) => {
+      if (!audio) return;
+      audio.pause();
+      audio.currentTime = 0;
+    });
+  }, [mood]);
+
   const visibleSongs = useMemo(() => {
     const lowered = query.trim().toLowerCase();
     const filtered = songs.filter((song) => {
@@ -44,13 +61,37 @@ export default function SongList({ mood }) {
       return title.includes(lowered) || artist.includes(lowered);
     });
 
-    return filtered.sort((a, b) => a.title.localeCompare(b.title));
+    return filtered.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
   }, [songs, query]);
 
   const toggleFavorite = (id) => {
+    if (!id) return;
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((favId) => favId !== id) : [...prev, id]
     );
+  };
+
+  const togglePlayback = async (songKey) => {
+    const audio = audioRefs.current[songKey];
+    if (!audio) return;
+
+    if (currentlyPlaying === songKey) {
+      audio.pause();
+      setCurrentlyPlaying(null);
+      return;
+    }
+
+    if (currentlyPlaying && audioRefs.current[currentlyPlaying]) {
+      audioRefs.current[currentlyPlaying].pause();
+      audioRefs.current[currentlyPlaying].currentTime = 0;
+    }
+
+    try {
+      await audio.play();
+      setCurrentlyPlaying(songKey);
+    } catch (error) {
+      console.error("Audio playback failed:", error);
+    }
   };
 
   return (
@@ -74,17 +115,38 @@ export default function SongList({ mood }) {
 
       <div className="song-grid">
         {visibleSongs.map((song, index) => {
-          const key = song.id || `${song.title}-${index}`;
-          const isFavorite = favorites.includes(song.id);
+          const songKey = song.id || `${song.title}-${index}`;
+          const isFavorite = Boolean(song.id && favorites.includes(song.id));
+          const audioUrl = resolveAudioUrl(song.audio_url);
+          const isPlaying = currentlyPlaying === songKey;
 
           return (
-            <article key={key} className="song-card">
+            <article key={songKey} className="song-card">
               <div>
                 <p className="song-index">#{index + 1}</p>
                 <h4>{song.title}</h4>
                 <p>{song.artist}</p>
                 <small>{song.mood}</small>
+
+                {audioUrl ? (
+                  <div className="player-row">
+                    <audio
+                      preload="none"
+                      ref={(node) => {
+                        audioRefs.current[songKey] = node;
+                      }}
+                      src={audioUrl}
+                      onEnded={() => setCurrentlyPlaying(null)}
+                    />
+                    <button className="player-btn" onClick={() => togglePlayback(songKey)}>
+                      {isPlaying ? "⏸ Pause" : "▶ Play"}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="muted">No audio file linked yet.</p>
+                )}
               </div>
+
               <button className="favorite-btn" onClick={() => toggleFavorite(song.id)}>
                 {isFavorite ? "★ Saved" : "☆ Save"}
               </button>
