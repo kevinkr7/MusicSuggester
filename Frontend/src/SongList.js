@@ -1,55 +1,97 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:8080";
 
 export default function SongList({ mood }) {
-    const [songs, setSongs] = useState([]);
-    const [loading, setLoading] = useState(false);
+  const [songs, setSongs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState("");
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const cached = localStorage.getItem("music-favorites");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
 
-    useEffect(() => {
-        if (!mood) return;
+  useEffect(() => {
+    if (!mood) return;
 
-        setLoading(true);
-        fetch("http://172.21.12.191:8080/songs/mood/${mood}")
-            .then((res) => res.json())
-            .then((data) => {
-                console.log("API Data received:", data); // Check your console!
+    setLoading(true);
+    fetch(`${API_BASE}/songs/mood/${encodeURIComponent(mood)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        const allSongs = Array.isArray(data) ? data : data.songs || [];
+        setSongs(allSongs);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        setLoading(false);
+      });
+  }, [mood]);
 
-                // 1. Ensure data is an array. If your API wraps it, use data.songs
-                const allSongs = Array.isArray(data) ? data : data.songs || [];
+  useEffect(() => {
+    localStorage.setItem("music-favorites", JSON.stringify(favorites));
+  }, [favorites]);
 
-                // 2. Flexible filtering
-                const filtered = allSongs.filter((s) =>
-                    s.mood.toLowerCase().includes(mood.toLowerCase())
-                );
+  const visibleSongs = useMemo(() => {
+    const lowered = query.trim().toLowerCase();
+    const filtered = songs.filter((song) => {
+      const title = song.title?.toLowerCase() || "";
+      const artist = song.artist?.toLowerCase() || "";
+      return title.includes(lowered) || artist.includes(lowered);
+    });
 
-                setSongs(filtered);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error("Fetch error:", err);
-                setLoading(false);
-            });
-    }, [mood]);
+    return filtered.sort((a, b) => a.title.localeCompare(b.title));
+  }, [songs, query]);
 
-    return (
-        <div>
-            <h3>{mood ? `${mood} Tracks` : "Select a mood to see songs"}</h3>
-
-            {loading && <p>Loading tracks...</p>}
-
-            {!loading && songs.length === 0 && mood && (
-                <p style={{ color: "#b3b3b3" }}>
-                    No songs found for "{mood}". <br/>
-                    <small>(Check if the mood names match exactly in your database)</small>
-                </p>
-            )}
-
-            {songs.map((song) => (
-                <div key={song.id || song.title} className="song-card">
-                    <h4 style={{ margin: "0 0 5px 0", color: "#1db954" }}>{song.title}</h4>
-                    <p style={{ margin: "0", fontWeight: "bold" }}>{song.artist}</p>
-                    <p style={{ fontSize: "0.8rem", color: "#b3b3b3" }}>Category: {song.mood}</p>
-                </div>
-            ))}
-        </div>
+  const toggleFavorite = (id) => {
+    setFavorites((prev) =>
+      prev.includes(id) ? prev.filter((favId) => favId !== id) : [...prev, id]
     );
+  };
+
+  return (
+    <div className="song-section">
+      <div className="song-toolbar">
+        <h3>{mood ? `${mood} Tracks` : "Select a mood to see songs"}</h3>
+        <input
+          className="search-input"
+          type="search"
+          placeholder="Filter by title or artist"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      </div>
+
+      {loading && <p>Loading tracks...</p>}
+
+      {!loading && visibleSongs.length === 0 && mood && (
+        <p className="muted">No songs found for “{mood}”. Try another mood or upload one.</p>
+      )}
+
+      <div className="song-grid">
+        {visibleSongs.map((song, index) => {
+          const key = song.id || `${song.title}-${index}`;
+          const isFavorite = favorites.includes(song.id);
+
+          return (
+            <article key={key} className="song-card">
+              <div>
+                <p className="song-index">#{index + 1}</p>
+                <h4>{song.title}</h4>
+                <p>{song.artist}</p>
+                <small>{song.mood}</small>
+              </div>
+              <button className="favorite-btn" onClick={() => toggleFavorite(song.id)}>
+                {isFavorite ? "★ Saved" : "☆ Save"}
+              </button>
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
