@@ -1,0 +1,74 @@
+:root {
+  --primary: #1db954; /* Spotify Green */
+  --bg-dark: #121212;
+  --card-bg: #181818;
+  --text-main: #ffffff;
+  --text-dim: #b3b3b3;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+/* Buttons */
+button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+  margin: 10px;
+}
+
+button:hover {
+  transform: scale(1.05);
+  background-color: #1ed760;
+}
+
+/* Forms */
+form {
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+input {
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #333;
+  background: #282828;
+  color: white;
+}
+
+/* Song Cards */
+.song-card {
+  background: var(--card-bg);
+  border: 1px solid #282828;
+  padding: 20px;
+  margin: 15px 0;
+  border-radius: 10px;
+  text-align: left;
+  transition: background 0.3s;
+}
+
+.song-card:hover {
+  background: #282828;
+}
