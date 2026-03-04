@@ -8,7 +8,7 @@ const tabs = [
   { key: "add", label: "Upload" },
 ];
 
-export default function HomePage() {
+export default function HomePage({ user, onLogout }) {
   const [view, setView] = useState("dashboard");
 
   const subtitle = useMemo(
@@ -25,8 +25,12 @@ export default function HomePage() {
       <main className="container glass-card">
         <header className="hero-copy">
           <p className="kicker">MusicSuggester 2.0</p>
-          <h1>Immersive Mood Studio</h1>
+          <div className="hero-title-row">
+            <h1>Immersive Mood Studio</h1>
+            <button className="logout-btn" onClick={onLogout}>Logout</button>
+          </div>
           <p className="hero-subtitle">{subtitle}</p>
+          <p className="muted">Signed in as @{user?.username}</p>
         </header>
 
         <nav className="tab-row" aria-label="Main views">

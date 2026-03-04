@@ -245,3 +245,36 @@ button:hover {
   background: #1a1a1a; /* Dark background for the dropdown list */
   color: white;
 }
+
+.hero-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.logout-btn,
+.auth-toggle {
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.auth-card {
+  max-width: 560px;
+}
+
+.auth-form {
+  margin-top: 22px;
+}
+
+.auth-error {
+  color: #fda4af;
+  margin: 0;
+}
+
+.loading-state {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+}
