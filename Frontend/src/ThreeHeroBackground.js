@@ -117,8 +117,8 @@ export default function ThreeHeroBackground() {
           camera.updateProjectionMatrix();
 
           const isCompact = width < 900;
-          mainGroup.position.set(isCompact ? 11 : 16, 1.4, 0);
-          miniGroup.position.set(isCompact ? -10 : -16, -3.6, -2.5);
+          mainGroup.position.set(isCompact ? 16 : 41, 1.4, 0);
+          miniGroup.position.set(isCompact ? -10 : -36, -3.6, -2.5);
         };
 
         resize();
@@ -137,7 +137,15 @@ export default function ThreeHeroBackground() {
           miniGroup.rotation.z -= 0.0012;
 
           stars.rotation.y += 0.0009;
-          renderer.render(scene, camera);
+
+            // Existing rotation code...
+            mainOrb.rotation.x += 0.003;
+
+            // Add a subtle "floating" effect using Math.sin
+            // This shifts the Y position slightly up and down over time
+            mainGroup.position.y += Math.sin(Date.now() * 0.001) * 0.01;
+
+            renderer.render(scene, camera);
         };
 
         animate();

@@ -5,7 +5,7 @@ const moods = [
   { label: "Happy", icon: "😊", value: "Happy", color: "#f59e0b" },
   { label: "Heartbroken", icon: "💔", value: "Heartbroken", color: "#fb7185" },
   { label: "Chill", icon: "🌙", value: "Chill", color: "#22d3ee" },
-  { label: "Workout", icon: "🔥", value: "Workout & GYM", color: "#34d399" },
+  { label: "Workout", icon: "🔥", value: "Workout", color: "#34d399" },
 ];
 
 export default function MoodDashboard() {

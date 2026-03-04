@@ -229,3 +229,19 @@ button:hover {
     transform: translateY(0);
   }
 }
+
+/* Add this to your CSS file */
+.mood-select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+}
+
+.mood-select option {
+  background: #1a1a1a; /* Dark background for the dropdown list */
+  color: white;
+}

@@ -73,7 +73,13 @@ export default function SongList({ mood }) {
 
   const togglePlayback = async (songKey) => {
     const audio = audioRefs.current[songKey];
-    if (!audio) return;
+    if (!audio) {
+      console.error("No audio element found for key:", songKey);
+      return;
+    }
+
+    // Log the URL to your console to see if it's actually correct
+    console.log("Attempting to play:", audio.src);
 
     if (currentlyPlaying === songKey) {
       audio.pause();
@@ -81,16 +87,20 @@ export default function SongList({ mood }) {
       return;
     }
 
+    // Reset other playing tracks
     if (currentlyPlaying && audioRefs.current[currentlyPlaying]) {
       audioRefs.current[currentlyPlaying].pause();
       audioRefs.current[currentlyPlaying].currentTime = 0;
     }
 
     try {
+      // Crucial: Load the source before playing
+      audio.load();
       await audio.play();
       setCurrentlyPlaying(songKey);
     } catch (error) {
-      console.error("Audio playback failed:", error);
+      // This will tell you if the file format is wrong or if the file is missing (404)
+      console.error("Playback Error:", error.name, error.message);
     }
   };
 
