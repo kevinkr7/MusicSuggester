@@ -2,9 +2,12 @@ package com.example.myproject;
 
 import com.example.myproject.model.Music;
 import com.example.myproject.repository.MusicRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -24,13 +27,14 @@ public class MusicController {
     }
 
     @GetMapping("/songs")
-    public List<Music> displayAllSongs(){
-        return musicRepository.findAll();
+    public List<Music> displayAllSongs(HttpSession session){
+        return musicRepository.findByUserId(getUserId(session));
     }
 
     @PostMapping("/songs")
     public Music addSong(@ModelAttribute Music music,
-                         @RequestParam("file") MultipartFile file) {
+                         @RequestParam("file") MultipartFile file,
+                         HttpSession session) {
 
         try {
             String uploadDir = "uploads/";
@@ -49,18 +53,44 @@ public class MusicController {
             e.printStackTrace();
         }
 
+        music.setUserId(getUserId(session));
         return musicRepository.save(music);
     }
 
 
     @GetMapping("/songs/mood/{mood}")
-    public List<Music> getSongsByMood(@PathVariable String mood){
-        return musicRepository.findByMood(mood);
+    public List<Music> getSongsByMood(@PathVariable String mood, HttpSession session){
+        return musicRepository.findByMoodAndUserId(mood, getUserId(session));
     }
 
     @DeleteMapping("/songs/{id}")
-    public void deleteSong(@PathVariable int id){
+    public void deleteSong(@PathVariable int id, HttpSession session){
+        Long userId = getUserId(session);
+        Music song = musicRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Song not found."));
+
+        if (!userId.equals(song.getUserId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not allowed to delete this song.");
+        }
+
         musicRepository.deleteById(id);
+    }
+
+    private Long getUserId(HttpSession session) {
+        Object userId = session.getAttribute("userId");
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Login required.");
+        }
+
+        if (userId instanceof Long id) {
+            return id;
+        }
+
+        if (userId instanceof Integer id) {
+            return id.longValue();
+        }
+
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid session.");
     }
 
     @Configuration
@@ -68,12 +98,9 @@ public class MusicController {
 
         @Override
         public void addResourceHandlers(ResourceHandlerRegistry registry) {
-            // Get the absolute path to your uploads folder
             Path uploadDir = Paths.get("uploads");
             String uploadPath = uploadDir.toFile().getAbsolutePath();
 
-            // This maps http://localhost:8080/uploads/song.mp3
-            // to the actual file on your computer
             registry.addResourceHandler("/uploads/**")
                     .addResourceLocations("file:" + uploadPath + "/");
         }

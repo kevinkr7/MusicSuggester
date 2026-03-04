@@ -14,20 +14,30 @@ export default function SongList({ mood }) {
   const [query, setQuery] = useState("");
   const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
   const audioRefs = useRef({});
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const cached = localStorage.getItem("music-favorites");
-      return cached ? JSON.parse(cached) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [favorites, setFavorites] = useState([]);
+
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/favorites`, { credentials: "include" });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const favoriteSongIds = Array.isArray(data) ? data.map((fav) => fav.songId) : [];
+        setFavorites(favoriteSongIds);
+      } catch (err) {
+        console.error("Could not fetch favorites:", err);
+      }
+    };
+
+    loadFavorites();
+  }, []);
 
   useEffect(() => {
     if (!mood) return;
 
     setLoading(true);
-    fetch(`${API_BASE}/songs/mood/${encodeURIComponent(mood)}`)
+    fetch(`${API_BASE}/songs/mood/${encodeURIComponent(mood)}`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         const allSongs = Array.isArray(data) ? data : data.songs || [];
@@ -39,10 +49,6 @@ export default function SongList({ mood }) {
         setLoading(false);
       });
   }, [mood]);
-
-  useEffect(() => {
-    localStorage.setItem("music-favorites", JSON.stringify(favorites));
-  }, [favorites]);
 
   useEffect(() => {
     setCurrentlyPlaying(null);
@@ -64,11 +70,27 @@ export default function SongList({ mood }) {
     return filtered.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
   }, [songs, query]);
 
-  const toggleFavorite = (id) => {
+  const toggleFavorite = async (id) => {
     if (!id) return;
-    setFavorites((prev) =>
-      prev.includes(id) ? prev.filter((favId) => favId !== id) : [...prev, id]
-    );
+    const isAlreadyFavorite = favorites.includes(id);
+
+    try {
+      const endpoint = `${API_BASE}/favorites/${id}`;
+      const response = await fetch(endpoint, {
+        method: isAlreadyFavorite ? "DELETE" : "POST",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Favorite update failed");
+      }
+
+      setFavorites((prev) =>
+        isAlreadyFavorite ? prev.filter((favId) => favId !== id) : [...prev, id]
+      );
+    } catch (err) {
+      console.error("Favorite action failed:", err);
+    }
   };
 
   const togglePlayback = async (songKey) => {
@@ -78,28 +100,22 @@ export default function SongList({ mood }) {
       return;
     }
 
-    // Log the URL to your console to see if it's actually correct
-    console.log("Attempting to play:", audio.src);
-
     if (currentlyPlaying === songKey) {
       audio.pause();
       setCurrentlyPlaying(null);
       return;
     }
 
-    // Reset other playing tracks
     if (currentlyPlaying && audioRefs.current[currentlyPlaying]) {
       audioRefs.current[currentlyPlaying].pause();
       audioRefs.current[currentlyPlaying].currentTime = 0;
     }
 
     try {
-      // Crucial: Load the source before playing
       audio.load();
       await audio.play();
       setCurrentlyPlaying(songKey);
     } catch (error) {
-      // This will tell you if the file format is wrong or if the file is missing (404)
       console.error("Playback Error:", error.name, error.message);
     }
   };
@@ -158,7 +174,7 @@ export default function SongList({ mood }) {
               </div>
 
               <button className="favorite-btn" onClick={() => toggleFavorite(song.id)}>
-                {isFavorite ? "★ Saved" : "☆ Save"}
+                {isFavorite ? "Delete Fav" : "Save Fav"}
               </button>
             </article>
           );

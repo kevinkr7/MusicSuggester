@@ -15,6 +15,7 @@ public class Music {
     private String mood;
     private String image_url;
     private String audio_url;
+    private Long userId;
 
     public long getId() {
         return id;
@@ -51,6 +52,14 @@ public class Music {
     }
     public void setAudio_url(String audio_url) {
         this.audio_url = audio_url;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
 }

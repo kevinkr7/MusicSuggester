@@ -30,6 +30,7 @@ export const AddSong = () => {
     try {
       const response = await fetch(`${API_BASE}/songs`, {
         method: "POST",
+        credentials: "include",
         body: formData, // Fetch automatically sets multipart/form-data headers
       });
 
