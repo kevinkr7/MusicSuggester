@@ -278,3 +278,108 @@ button:hover {
   place-items: center;
   color: var(--text);
 }
+
+/* --- AUTH PAGE ENHANCEMENTS --- */
+
+/* Center the card on the screen */
+.app-shell.auth-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Slim down the card and center the text */
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  margin: 0;
+  text-align: center;
+  padding: 40px 32px;
+}
+
+.auth-header h1 {
+  font-size: 2rem;
+  margin-top: 12px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Better breathing room between inputs */
+  margin-top: 32px;
+}
+
+/* Make inputs look modern, full-width, and accessible */
+.auth-form input {
+  width: 100%;
+  max-width: 100%; /* Overrides your previous 320px limit */
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text);
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+  background: rgba(15, 23, 42, 0.9);
+}
+
+/* Beef up the submit button */
+.auth-submit-btn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 14px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Make the toggle look like a subtle link instead of a chunky button */
+.auth-toggle-link {
+  margin-top: 24px;
+  width: 100%;
+  border: none;
+  background: rgba(255, 255, 255, 0.05); /* Faint white/glassy tint */
+  border-radius: 8px; /* Added rounded corners to match the background */
+  color: var(--muted);
+  font-size: 0.9rem;
+  padding: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.auth-toggle-link:hover {
+  color: var(--text);
+  background: rgba(88, 0, 255, 0.1); /* Slightly brighter on hover */
+  text-decoration: none; /* Removed the underline from the previous version */
+}
+
+.auth-toggle-link:hover {
+  color: var(--text);
+  background: transparent;
+  transform: translateY(0);
+  box-shadow: none;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Prettier error box */
+.auth-error-box {
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  padding: 12px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.auth-error {
+  color: #fca5a5;
+  margin: 0;
+  font-size: 0.9rem;
+}
